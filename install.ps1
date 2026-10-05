@@ -7,7 +7,7 @@ $dot = $PSScriptRoot
 # --- программы ---
 $apps = @(
     'Git.Git', 'Microsoft.PowerShell', 'wez.wezterm', 'glzr-io.glazewm',
-    'glzr-io.zebar', 'Microsoft.PowerToys', 'CharlesMilette.TranslucentTB',
+    'Microsoft.PowerToys', 'CharlesMilette.TranslucentTB',
     'Fastfetch-cli.Fastfetch', 'eza-community.eza', 'ajeetdsouza.zoxide',
     'junegunn.fzf', 'sharkdp.bat', 'aristocratos.btop4win', 'JesseDuffield.lazygit'
 )
@@ -21,7 +21,6 @@ $links = [ordered]@{
     $PROFILE                                 = 'powershell\Microsoft.PowerShell_profile.ps1'
     "$HOME\.wezterm.lua"                     = 'wezterm\.wezterm.lua'
     "$HOME\.glzr\glazewm\config.yaml"        = 'glazewm\config.yaml'
-    "$HOME\.glzr\zebar\vanilla-clear"        = 'zebar\vanilla-clear'
     "$HOME\.config\fastfetch\config.jsonc"   = 'fastfetch\config.jsonc'
 }
 foreach ($k in $links.Keys) {

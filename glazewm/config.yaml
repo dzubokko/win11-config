@@ -1,5 +1,5 @@
 general:
-  startup_commands: ["shell-exec zebar"]
+  startup_commands: []
   focus_follows_cursor: false
   toggle_workspace_on_refocus: false
   cursor_jump:
@@ -9,7 +9,7 @@ general:
 gaps:
   inner_gap: "10px"
   outer_gap:
-    top: "50px"
+    top: "10px"
     right: "10px"
     bottom: "10px"
     left: "10px"
@@ -207,5 +207,7 @@ keybindings:
     bindings: ["alt+shift+8"]
   - commands: ["move --workspace 9", "focus --workspace 9"]
     bindings: ["alt+shift+9"]
+
+
 
 

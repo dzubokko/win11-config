@@ -6,7 +6,28 @@
 # --- Предсказания при вводе -------------------------------------------
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle InlineView
-Set-PSReadLineOption -Colors @{ InlinePrediction = "DarkGray" }
+Set-PSReadLineOption -Colors @{
+    Command          = "`e[38;2;137;180;250m"
+    Parameter        = "`e[38;2;249;226;175m"
+    String           = "`e[38;2;166;227;161m"
+    Operator         = "`e[38;2;137;220;235m"
+    Variable         = "`e[38;2;245;194;231m"
+    Number           = "`e[38;2;250;179;135m"
+    Type             = "`e[38;2;249;226;175m"
+    Keyword          = "`e[38;2;203;166;247m"
+    Member           = "`e[38;2;180;190;254m"
+    Comment          = "`e[38;2;108;112;134m"
+    Error            = "`e[38;2;243;139;168m"
+    InlinePrediction = "`e[38;2;88;91;112m"
+    ListPrediction   = "`e[38;2;137;180;250m"
+    Selection        = "`e[48;2;69;71;90m"
+}
+
+# Единая тема для всех окон fzf
+$env:FZF_DEFAULT_OPTS = '--color=bg+:#313244,bg:-1,spinner:#f5e0dc,hl:#f38ba8,fg:#cdd6f4,header:#7f849c,info:#cba6f7,pointer:#f5e0dc,marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8,border:#45475a --border=rounded --layout=reverse'
+
+# Тема bat
+$env:BAT_THEME = 'Catppuccin Mocha'
 
 # Tab показывает меню вариантов, как в Linux
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
@@ -18,16 +39,34 @@ Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
 # --- Приглашение ------------------------------------------------------
 function prompt {
+    $ok = $?
+    $e = [char]27
+    $frame = "$e[38;2;88;91;112m";  $user  = "$e[38;2;180;190;254m"
+    $pathc = "$e[38;2;137;180;250m"; $gitc  = "$e[38;2;166;227;161m"
+    $dirty = "$e[38;2;249;226;175m"; $timec = "$e[38;2;127;132;156m"
+    $good  = "$e[38;2;203;166;247m"; $bad   = "$e[38;2;243;139;168m"
+    $r     = "$e[0m"
+
     $path = $PWD.Path.Replace($HOME, '~')
-    $top = [char]0x250C   # ┌
-    $bot = [char]0x2514   # └
-    Write-Host "$top[" -NoNewline -ForegroundColor DarkGray
-    Write-Host $env:USERNAME -NoNewline -ForegroundColor Gray
-    Write-Host "]" -ForegroundColor DarkGray
-    Write-Host "$bot[" -NoNewline -ForegroundColor DarkGray
-    Write-Host $path -NoNewline -ForegroundColor Gray
-    Write-Host "]" -ForegroundColor DarkGray
-    return "$([char]0x03BB) "
+
+    # git-ветка и признак незакоммиченных изменений
+    $git = ''
+    $branch = git branch --show-current 2>$null
+    if ($branch) {
+        $mark = if (git status --porcelain 2>$null) { " $dirty●" } else { '' }
+        $git = "  $gitc$([char]0xE0A0) $branch$mark"
+    }
+
+    # время выполнения прошлой команды, если дольше 2 секунд
+    $dur = ''
+    $last = Get-History -Count 1
+    if ($last) {
+        $s = ($last.EndExecutionTime - $last.StartExecutionTime).TotalSeconds
+        if ($s -ge 2) { $dur = "  $timec$([char]0xF017) $([math]::Round($s, 1))s" }
+    }
+
+    $lam = if ($ok) { $good } else { $bad }
+    "$frame$([char]0x250C)[$user$env:USERNAME$frame] $pathc$path$git$dur$r`n$frame$([char]0x2514) $lam$([char]0x03BB)$r "
 }
 
 
@@ -41,7 +80,7 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 # eza: минималистичный ls
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     Remove-Item Alias:ls -Force -ErrorAction SilentlyContinue
-    $env:EZA_COLORS = "di=38;2;190;163;199:fi=38;2;210;205;215:da=38;2;110;110;120:sn=38;2;150;150;160:sb=38;2;110;110;120"
+    $env:EZA_COLORS = "di=38;2;137;180;250:fi=38;2;205;214;244:da=38;2;108;112;134:sn=38;2;150;150;160:sb=38;2;108;112;134"
     $global:ezaBase = @('--group-directories-first', '--classify', '--no-quotes')
     function ls { eza @ezaBase @args }
     function ll { eza -l --no-permissions --no-user --git @ezaBase @args }
@@ -49,7 +88,7 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
     function lt { eza --tree --level=2 @ezaBase @args }
 }
 # fzf: Ctrl+R поиск по истории, Ctrl+T вставить путь к файлу
-if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Module -ListAvailable PSFzf)) {
+if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Import-Module PSFzf -PassThru -ErrorAction SilentlyContinue)) {
     Import-Module PSFzf
     Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
 }
@@ -61,6 +100,171 @@ if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
 }
 
 
+# --- Заметки и задачи ----------------------------------------------------
+$global:NotesDir = "$HOME\notes"
+$global:NotesFzfColors = 'fg:#a6adc8,fg+:#cdd6f4,bg+:#313244,hl:#89b4fa,hl+:#89b4fa,prompt:#89b4fa,pointer:#89b4fa,border:#45475a,header:#7f849c,info:#7f849c,label:#89b4fa,query:#cdd6f4'
+
+function Initialize-Notes {
+    New-Item -ItemType Directory -Force "$NotesDir\journal", "$NotesDir\notes" | Out-Null
+    if (-not (Test-Path "$NotesDir\inbox.md")) { Set-Content "$NotesDir\inbox.md" "# Входящие`n" -Encoding utf8 }
+    if (-not (Test-Path "$NotesDir\tasks.md")) { Set-Content "$NotesDir\tasks.md" "# Задачи`n" -Encoding utf8 }
+}
+
+function Open-Note([string]$Path, [int]$Line = 0) {
+    if (Get-Command nvim -ErrorAction SilentlyContinue) {
+        if ($Line) { nvim "+$Line" $Path } else { nvim $Path }
+    } elseif (Get-Command code -ErrorAction SilentlyContinue) {
+        if ($Line) { code -g "${Path}:$Line" } else { code $Path }
+    } else {
+        notepad $Path
+    }
+}
+
+function Write-NoteMsg([string]$Mark, [string]$Text) {
+    $e = [char]27
+    Write-Host "  $e[38;2;137;180;250m$Mark$e[0m $e[38;2;205;214;244m$Text$e[0m"
+}
+
+# i <мысль> — во входящие; i — показать входящие
+function i {
+    Initialize-Notes
+    $f = "$NotesDir\inbox.md"
+    $text = $args -join ' '
+    if (-not $text) {
+        if (Get-Command bat -ErrorAction SilentlyContinue) { bat --style=plain --paging=never $f } else { Get-Content $f }
+        return
+    }
+    Add-Content $f "- $(Get-Date -Format 'dd.MM HH:mm')  $text" -Encoding utf8
+    Write-NoteMsg '+' $text
+}
+
+# t <задача> — добавить; t — список открытых
+function t {
+    Initialize-Notes
+    $f = "$NotesDir\tasks.md"
+    $text = $args -join ' '
+    if ($text) {
+        Add-Content $f "- [ ] $text" -Encoding utf8
+        Write-NoteMsg '+' $text
+        return
+    }
+    $e = [char]27
+    $num = 0
+    Write-Host ''
+    foreach ($l in Get-Content $f) {
+        if ($l -match '^\s*- \[ \] (.+)$') {
+            $num++
+            Write-Host ("  $e[38;2;108;112;134m{0,2}$e[0m  $e[38;2;137;180;250m○$e[0m  {1}" -f $num, $matches[1])
+        }
+    }
+    if ($num -eq 0) { Write-NoteMsg '✓' 'открытых задач нет' }
+    Write-Host ''
+}
+
+# td — отметить выполненные (fzf); td 1 3 — по номерам
+function td {
+    Initialize-Notes
+    $f = "$NotesDir\tasks.md"
+    $lines = [System.Collections.Generic.List[string]]::new([string[]](Get-Content $f))
+    $open = [System.Collections.Generic.List[int]]::new()
+    for ($k = 0; $k -lt $lines.Count; $k++) { if ($lines[$k] -match '^\s*- \[ \] ') { $open.Add($k) } }
+    if ($open.Count -eq 0) { Write-NoteMsg '✓' 'открытых задач нет'; return }
+
+    $nums = @($args | ForEach-Object { [int]$_ })
+    if ($nums.Count -eq 0) {
+        $items = for ($j = 0; $j -lt $open.Count; $j++) { "$($j + 1)`t" + ($lines[$open[$j]] -replace '^\s*- \[ \] ', '') }
+        $sel = @($items | fzf -m '--delimiter=\t' --with-nth=2 --layout=reverse --border=rounded '--border-label= выполнено ' '--prompt=› ' '--pointer=▌' '--header=Tab отметить несколько · Enter готово · Esc отмена' "--color=$NotesFzfColors")
+        $nums = @($sel | ForEach-Object { [int]($_ -split "`t")[0] })
+    }
+    foreach ($x in $nums) {
+        if ($x -lt 1 -or $x -gt $open.Count) { continue }
+        $k = $open[$x - 1]
+        $lines[$k] = ($lines[$k] -replace '- \[ \] ', '- [x] ') + "  ✓ $(Get-Date -Format 'dd.MM')"
+        Write-NoteMsg '✓' ($lines[$k] -replace '^\s*- \[x\] ', '')
+    }
+    Set-Content $f $lines -Encoding utf8
+}
+
+# tclean — перенести выполненные в архив
+function tclean {
+    Initialize-Notes
+    $f = "$NotesDir\tasks.md"
+    $lines = @(Get-Content $f)
+    $done = @($lines | Where-Object { $_ -match '^\s*- \[x\] ' })
+    if ($done.Count -eq 0) { Write-NoteMsg '·' 'выполненных задач нет'; return }
+    Add-Content "$NotesDir\tasks-done.md" $done -Encoding utf8
+    Set-Content $f @($lines | Where-Object { $_ -notmatch '^\s*- \[x\] ' }) -Encoding utf8
+    Write-NoteMsg '→' "в архив: $($done.Count)"
+}
+
+# j — дневник на сегодня
+function j {
+    Initialize-Notes
+    $d = Get-Date
+    $f = "$NotesDir\journal\$($d.ToString('yyyy-MM-dd')).md"
+    if (-not (Test-Path $f)) {
+        $title = $d.ToString('dddd, d MMMM yyyy', [Globalization.CultureInfo]'ru-RU')
+        Set-Content $f "# $title`n`n## Планы`n`n- `n`n## Заметки`n`n" -Encoding utf8
+    }
+    Open-Note $f
+}
+
+# n — выбрать заметку в fzf (новое имя + Enter = создать); n <имя> — открыть или создать
+function n {
+    Initialize-Notes
+    $name = $args -join ' '
+    if ($name) {
+        $f = Join-Path $NotesDir "notes\$name.md"
+        if (-not (Test-Path $f)) { Set-Content $f "# $name`n`n" -Encoding utf8 }
+        Open-Note $f
+        return
+    }
+    Push-Location $NotesDir
+    try {
+        $files = Get-ChildItem -Recurse -Filter *.md -File |
+            Sort-Object LastWriteTime -Descending |
+            ForEach-Object { [IO.Path]::GetRelativePath($NotesDir, $_.FullName) }
+        $out = @($files | fzf --print-query --layout=reverse --border=rounded '--border-label= заметки ' '--prompt=› ' '--pointer=▌' '--header=Enter открыть · новое имя + Enter создать · Esc выход' '--preview=bat --color=always --style=plain {}' "--color=$NotesFzfColors")
+        $code = $LASTEXITCODE
+    } finally { Pop-Location }
+    if ($code -eq 130 -or $out.Count -eq 0) { return }
+    $query = $out[0]
+    $pick = if ($out.Count -ge 2) { $out[1] } else { '' }
+    if ($pick) { Open-Note (Join-Path $NotesDir $pick) }
+    elseif ($query) { n $query }
+}
+
+# ns <текст> — поиск по всем заметкам
+function ns {
+    Initialize-Notes
+    $q = $args -join ' '
+    if (-not $q) { Write-NoteMsg '?' 'ns <что искать>'; return }
+    Push-Location $NotesDir
+    try {
+        $hits = @(Get-ChildItem -Recurse -Filter *.md -File |
+            Select-String -SimpleMatch -Pattern $q |
+            ForEach-Object { '{0}:{1}:{2}' -f [IO.Path]::GetRelativePath($NotesDir, $_.Path), $_.LineNumber, $_.Line.Trim() })
+        if ($hits.Count -eq 0) { Write-NoteMsg '·' "ничего не найдено: $q"; return }
+        $sel = $hits | fzf '--delimiter=:' --layout=reverse --border=rounded '--border-label= поиск ' '--prompt=› ' '--pointer=▌' '--preview=bat --color=always --style=numbers --highlight-line {2} {1}' '--preview-window=+{2}-5' "--color=$NotesFzfColors"
+    } finally { Pop-Location }
+    if ($sel) {
+        $parts = $sel -split ':'
+        Open-Note (Join-Path $NotesDir $parts[0]) ([int]$parts[1])
+    }
+}
+
+# nsync — сохранить заметки в git и отправить
+function nsync {
+    Initialize-Notes
+    Push-Location $NotesDir
+    try {
+        if (-not (Test-Path .git)) { git init -q -b main }
+        git add -A
+        git commit -q -m "notes $(Get-Date -Format 'yyyy-MM-dd HH:mm')" | Out-Null
+        if (git remote) { git push -q -u origin HEAD; Write-NoteMsg '✓' 'заметки сохранены и отправлены' }
+        else { Write-NoteMsg '✓' 'сохранено локально (нет remote для отправки)' }
+    } finally { Pop-Location }
+}
 # --- Кодировка для внешних программ (fzf и др.) -----------------------
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -155,6 +359,9 @@ function Get-CheatData {
             @('cd ~',                   'домой', 'cd ~'),
             @('pwd',                    'где я сейчас', 'pwd'),
             @('cls',                    'очистить экран', 'cls'),
+            @('λ красная',              'прошлая команда завершилась ошибкой', ''),
+            @('● после ветки',          'есть незакоммиченные изменения', ''),
+            @('часы в приглашении',     'сколько шла прошлая команда (от 2 сек)', ''),
             @('история',                'последние 20 команд', 'Get-History | Select-Object -Last 20'),
             @('explorer .',             'открыть папку в проводнике', 'explorer .'),
             @('code .',                 'открыть папку в VS Code', 'code .'),
@@ -346,6 +553,21 @@ function Get-CheatData {
             @('Alt+Shift+R',            'применить конфиг GlazeWM', ''),
             @('Ctrl+Shift+T',           'новая вкладка = применить профиль', '')
         )}
+        notes = @{ Title = 'Заметки и задачи'; Items = @(
+            @('i <мысль>',              'быстро записать во входящие', 'i '),
+            @('i',                      'показать входящие', 'i'),
+            @('t <задача>',             'добавить задачу', 't '),
+            @('t',                      'список открытых задач', 't'),
+            @('td',                     'отметить выполненные (Tab = несколько)', 'td'),
+            @('td <номер>',             'отметить задачу по номеру', 'td '),
+            @('tclean',                 'убрать выполненные в архив', 'tclean'),
+            @('j',                      'дневник на сегодня', 'j'),
+            @('n',                      'найти или создать заметку', 'n'),
+            @('n <имя>',                'открыть или создать заметку', 'n '),
+            @('ns <текст>',             'поиск по тексту всех заметок', 'ns '),
+            @('nsync',                  'сохранить заметки в git', 'nsync'),
+            @('папка заметок',          'открыть в проводнике', 'explorer $HOME\notes')
+        )}
         win = @{ Title = 'Windows'; Items = @(
             @('Win+Space',              'сменить раскладку', ''),
             @('Win+V',                  'история буфера обмена', ''),
@@ -400,11 +622,11 @@ function cheat {
     )
 
     $e      = [char]27
-    $accent = "$e[38;2;190;163;199m"
-    $keyc   = "$e[38;2;248;242;245m"
-    $dim    = "$e[38;2;130;130;140m"
-    $secc   = "$e[38;2;110;110;120m"
-    $runc   = "$e[38;2;150;200;160m"
+    $accent = "$e[38;2;137;180;250m"
+    $keyc   = "$e[38;2;205;214;244m"
+    $dim    = "$e[38;2;127;132;156m"
+    $secc   = "$e[38;2;108;112;134m"
+    $runc   = "$e[38;2;166;227;161m"
     $r      = "$e[0m"
     $line   = [string][char]0x2500
 
@@ -452,7 +674,7 @@ function cheat {
     } else {
         'Enter выполнить  ·  Ctrl+Y копировать  ·  Esc выход      ▸ команда   › шаблон'
     }
-    $colors = 'fg:#a8a3ad,fg+:#f8f2f5,bg+:#1d1a22,hl:#bea3c7,hl+:#bea3c7,prompt:#bea3c7,pointer:#bea3c7,border:#3d3845,header:#6e6e78,info:#6e6e78,label:#bea3c7,query:#f8f2f5'
+    $colors = 'fg:#a6adc8,fg+:#cdd6f4,bg+:#313244,hl:#89b4fa,hl+:#89b4fa,prompt:#89b4fa,pointer:#89b4fa,border:#45475a,header:#7f849c,info:#7f849c,label:#89b4fa,query:#cdd6f4'
 
     $fzfArgs = @(
         '--ansi', '--layout=reverse', '--border=rounded',
@@ -507,5 +729,12 @@ Set-PSReadLineKeyHandler -Key F1 -BriefDescription 'Cheat' -ScriptBlock {
     $cmd = cheat -Pick
     if ($cmd) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($cmd) }
 }
+
+
+
+
+
+
+
 
 
