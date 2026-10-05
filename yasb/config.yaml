@@ -1,0 +1,109 @@
+watch_config: true
+watch_stylesheet: true
+debug: false
+show_systray: true
+
+tooltip:
+  offset: 6
+  blur_effect:
+    enabled: true
+    dark_mode: true
+    round_corners: true
+    round_corners_type: "normal"
+    border_color: "None"
+
+bars:
+  primary-bar:
+    enabled: true
+    screens: ["*"]
+    class_name: "yasb-bar"
+    alignment:
+      position: "top"
+      align: "center"
+    blur_effect:
+      enabled: true
+      dark_mode: true
+      round_corners: true
+      round_corners_type: "normal"
+      border_color: "#585b70"
+    window_flags:
+      always_on_top: false
+      windows_app_bar: true
+    dimensions:
+      width: "99%"
+      height: 32
+    padding:
+      top: 2
+      left: 6
+      bottom: 2
+      right: 6
+    widgets:
+      left: ["glazewm_tiling_direction", "glazewm_workspaces", "glazewm_binding_mode", "pomodoro"]
+      center: ["clock"]
+      right: ["weather", "volume", "cpu", "memory", "wallpapers", "power"]
+
+widgets:
+  glazewm_tiling_direction:
+    type: "glazewm.tiling_direction.GlazewmTilingDirectionWidget"
+    options:
+      horizontal_label: "\uf07e"
+      vertical_label: "\uf07d"
+
+  glazewm_workspaces:
+    type: "glazewm.workspaces.GlazewmWorkspacesWidget"
+    options:
+      offline_label: "GlazeWM offline"
+      populated_label: " "
+      empty_label: " "
+
+  glazewm_binding_mode:
+    type: "glazewm.binding_mode.GlazewmBindingModeWidget"
+    options: {}
+
+  pomodoro:
+    type: "yasb.pomodoro.PomodoroWidget"
+    options: {}
+
+  clock:
+    type: "yasb.clock.ClockWidget"
+    options:
+      label: "{%H:%M:%S}"
+      label_alt: "{%A, %d %B %Y}"
+      timezones: []
+
+  weather:
+    type: "yasb.weather.WeatherWidget"
+    options:
+      api_key: "env"
+      location: "Tashkent"
+
+  volume:
+    type: "yasb.volume.VolumeWidget"
+    options: {}
+
+  cpu:
+    type: "yasb.cpu.CpuWidget"
+    options:
+      label: "\uf4bc {info[percent][total]}"
+
+  memory:
+    type: "yasb.memory.MemoryWidget"
+    options:
+      label: "\uf2db {virtual_mem_percent}"
+
+  wallpapers:
+    type: "yasb.wallpapers.WallpapersWidget"
+    options:
+      label: "\uf03e"
+      image_path: "C:/Users/dzubokko/Pictures/Wallpapers"
+
+  power:
+    type: "yasb.home.HomeWidget"
+    options:
+      label: "\uf011"
+      menu_list: []
+      system_menu: false
+      power_menu: true
+      blur: true
+      round_corners: true
+      border_color: "#45475a"

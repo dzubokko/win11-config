@@ -1,0 +1,110 @@
+* {
+    font-family: "JetBrainsMono NFP";
+    font-size: 13px;
+    color: #cdd6f4;
+}
+
+.yasb-bar {
+    background-color: rgba(30, 30, 46, 0.96);
+}
+
+.widget {
+    padding: 0 7px;
+    margin: 0;
+}
+.widget .widget-container {
+    background-color: transparent;
+}
+.widget .label {
+    padding: 0;
+}
+
+/* Направление разбиения */
+.glazewm-tiling-direction .btn {
+    background-color: transparent;
+    border: none;
+    color: #cdd6f4;
+    font-size: 15px;
+    padding: 0 2px;
+}
+
+/* Рабочие столы: голубые квадратики */
+.glazewm-workspaces .ws-btn {
+    background-color: transparent;
+    border: 1px solid #89b4fa;
+    border-radius: 3px;
+    min-width: 12px;
+    max-width: 12px;
+    min-height: 12px;
+    max-height: 12px;
+    margin: 0 2px;
+    padding: 0;
+    font-size: 1px;
+    color: transparent;
+}
+.glazewm-workspaces .ws-btn.populated {
+    background-color: rgba(137, 180, 250, 0.25);
+}
+.glazewm-workspaces .ws-btn.active_populated,
+.glazewm-workspaces .ws-btn.active_empty,
+.glazewm-workspaces .ws-btn.focused_populated,
+.glazewm-workspaces .ws-btn.focused_empty {
+    background-color: #89b4fa;
+}
+
+/* Режимы GlazeWM (pause, resize) */
+.glazewm-binding-mode .label {
+    background-color: #f9e2af;
+    color: #1e1e2e;
+    padding: 0 6px;
+    border-radius: 4px;
+}
+
+/* Помидор-таймер: зелёный */
+.pomodoro-widget .label,
+.pomodoro-widget .icon {
+    color: #a6e3a1;
+}
+
+/* Часы */
+.clock-widget .label {
+    color: #cdd6f4;
+}
+
+/* Кнопка питания: красная */
+.home-widget .label {
+    color: #f38ba8;
+    font-size: 15px;
+}
+
+/* Подсказки */
+.tooltip,
+QToolTip {
+    background-color: rgba(30, 30, 46, 0.97);
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 7px;
+    padding: 5px 9px;
+    font-size: 12px;
+}
+
+
+/* Выпадающее меню питания */
+.home-menu {
+    background-color: rgba(30, 30, 46, 0.85);
+    padding: 6px 0;
+}
+.home-menu .menu-item {
+    padding: 7px 18px;
+    font-size: 13px;
+    color: #cdd6f4;
+}
+.home-menu .menu-item:hover {
+    background-color: rgba(137, 180, 250, 0.18);
+    color: #89b4fa;
+}
+.home-menu .separator {
+    max-height: 1px;
+    background-color: #45475a;
+    margin: 4px 10px;
+}
