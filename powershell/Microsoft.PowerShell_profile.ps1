@@ -72,13 +72,27 @@ function prompt {
 
 # --- Утилиты (подключаются, только если установлены) ------------------
 
+# какие утилиты установлены (одна быстрая проверка, только среди программ)
+$apps = @{}
+$links = "$env:LOCALAPPDATA\Microsoft\WinGet\Links"
+foreach ($n in 'zoxide', 'eza', 'fzf', 'fastfetch') { if (Test-Path "$links\$n.exe") { $apps[$n] = $true } }
+$missing = @('zoxide', 'eza', 'fzf', 'fastfetch' | Where-Object { -not $apps[$_] })
+if ($missing) {
+    Get-Command $missing -CommandType Application -ErrorAction SilentlyContinue |
+        ForEach-Object { $apps[$_.Name -replace '\.exe$', ''] = $true }
+}
 # zoxide: умный cd (z <слово>, zi)
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+if ($apps.zoxide) {
+    $zc = "$HOME\.cache\zoxide-init.ps1"
+    if (-not (Test-Path $zc)) {
+        New-Item -ItemType Directory -Force (Split-Path $zc) | Out-Null
+        zoxide init powershell | Out-File $zc -Encoding utf8
+    }
+    . $zc
 }
 
 # eza: минималистичный ls
-if (Get-Command eza -ErrorAction SilentlyContinue) {
+if ($apps.eza) {
     Remove-Item Alias:ls -Force -ErrorAction SilentlyContinue
     $env:EZA_COLORS = "di=38;2;137;180;250:fi=38;2;205;214;244:da=38;2;108;112;134:sn=38;2;150;150;160:sb=38;2;108;112;134"
     $global:ezaBase = @('--group-directories-first', '--classify', '--no-quotes')
@@ -88,14 +102,20 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
     function lt { eza --tree --level=2 @ezaBase @args }
 }
 # fzf: Ctrl+R поиск по истории, Ctrl+T вставить путь к файлу
-if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Import-Module PSFzf -PassThru -ErrorAction SilentlyContinue)) {
-    Import-Module PSFzf
-    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+if ($apps.fzf) {
+    Set-PSReadLineKeyHandler -Key Ctrl+r -BriefDescription 'fzf history' -ScriptBlock {
+        Import-Module PSFzf -ErrorAction SilentlyContinue
+        Invoke-FzfPsReadlineHandlerHistory
+    }
+    Set-PSReadLineKeyHandler -Key Ctrl+t -BriefDescription 'fzf files' -ScriptBlock {
+        Import-Module PSFzf -ErrorAction SilentlyContinue
+        Invoke-FzfPsReadlineHandlerProvider
+    }
 }
 
 # fastfetch при запуске терминала (удали этот блок, если надоест)
 $ffConfig = "$HOME\.config\fastfetch\config.jsonc"
-if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
+if ($apps.fastfetch) {
     if (Test-Path $ffConfig) { fastfetch --config $ffConfig } else { fastfetch }
 }
 
@@ -729,6 +749,8 @@ Set-PSReadLineKeyHandler -Key F1 -BriefDescription 'Cheat' -ScriptBlock {
     $cmd = cheat -Pick
     if ($cmd) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($cmd) }
 }
+
+
 
 
 
