@@ -285,6 +285,13 @@ function nsync {
         else { Write-NoteMsg '✓' 'сохранено локально (нет remote для отправки)' }
     } finally { Pop-Location }
 }
+# --- Windhawk: скопировать настройки мода в буфер ---
+function whcopy {
+    param([ValidateSet('styler', 'size', 'clock', 'labels')][string]$Name = 'styler')
+    $map = @{ styler = 'taskbar-styler.yaml'; size = 'taskbar-icon-size.json'; clock = 'taskbar-clock.json'; labels = 'taskbar-labels.json' }
+    Get-Content (Join-Path "$HOME\dotfiles\windhawk" $map[$Name]) -Raw | Set-Clipboard
+    Write-Host "  скопировано: $($map[$Name]) — вставь в Windhawk и сохрани" -ForegroundColor DarkGray
+}
 # --- Кодировка для внешних программ (fzf и др.) -----------------------
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -569,6 +576,9 @@ function Get-CheatData {
             @('GlazeWM',                'конфиг оконного менеджера', 'notepad $HOME\.glzr\glazewm\config.yaml'),
             @('Zebar',                  'папка виджетов бара', 'explorer $HOME\.glzr\zebar'),
             @('fastfetch',              'конфиг fastfetch', 'notepad $HOME\.config\fastfetch\config.jsonc'),
+            @('Windhawk',               'моды панели задач', 'Start-Process "$env:ProgramFiles\Windhawk\windhawk.exe"'),
+            @('whcopy styler',          'скопировать стиль панели', 'whcopy styler'),
+            @('whcopy size/clock/labels', 'скопировать настройки модов', 'whcopy '),
             @('Neovim',                 'папка конфига LazyVim', 'nvim $env:LOCALAPPDATA\nvim'),
             @('Alt+Shift+R',            'применить конфиг GlazeWM', ''),
             @('Ctrl+Shift+T',           'новая вкладка = применить профиль', '')
@@ -749,6 +759,7 @@ Set-PSReadLineKeyHandler -Key F1 -BriefDescription 'Cheat' -ScriptBlock {
     $cmd = cheat -Pick
     if ($cmd) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($cmd) }
 }
+
 
 
 

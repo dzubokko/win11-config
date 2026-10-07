@@ -69,4 +69,6 @@ Write-Host '  1. Шрифт Iosevka Custom: собрать по fonts\private-bu
 Write-Host '  2. Ключ погоды: сохранить в ~\.config\yasb\.env строку YASB_WEATHER_API_KEY=...'
 Write-Host '  3. Обои: положить картинки в ~\Pictures\Wallpapers'
 Write-Host '  4. Запустить GlazeWM, затем: yasbc start; yasbc enable-autostart'
-Write-Host '  5. Если ругается на скрипты: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned'
+Write-Host '  5. Windhawk: моды Taskbar Styler, Taskbar height and icon size, Taskbar Clock Customization, Taskbar Labels; настройки через whcopy (см. README)'
+Write-Host '  6. Если ругается на скрипты: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned'
+

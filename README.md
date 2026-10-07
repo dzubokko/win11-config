@@ -14,7 +14,7 @@
 | **ExplorerBlurMica** | прозрачный проводник с размытием | `explorerblurmica/` |
 | **Iosevka Custom** | план сборки шрифта | `fonts/` |
 
-Утилиты: eza, zoxide, fzf + PSFzf, bat, btop, lazygit, PowerToys, TranslucentTB.
+Утилиты: eza, zoxide, fzf + PSFzf, bat, btop, lazygit, PowerToys, Windhawk (панель в стиле RosePine, цвета Catppuccin).
 
 ## Главное
 
@@ -40,3 +40,16 @@
 4. Выполнить ручные шаги, которые покажет скрипт в конце.
 
 Конфиги подключены символическими ссылками: правишь файл на месте, изменения сразу в репозитории.
+
+## Панель задач (Windhawk)
+
+Стиль RosePine в цветах Catppuccin Mocha. Настройки лежат в `windhawk/`.
+
+| Мод | Файл | Куда вставить |
+|---|---|---|
+| Windows 11 Taskbar Styler | `taskbar-styler.yaml` | Настройки → текстовый режим |
+| Taskbar height and icon size | `taskbar-icon-size.json` | Дополнительно → настройки модификации |
+| Taskbar Clock Customization | `taskbar-clock.json` | Дополнительно → настройки модификации |
+| Taskbar Labels for Windows 11 | `taskbar-labels.json` | Дополнительно → настройки модификации |
+
+Скопировать файл в буфер: `whcopy styler`, `whcopy size`, `whcopy clock`, `whcopy labels`.
