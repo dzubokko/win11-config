@@ -71,5 +71,10 @@ controlStyles:
       - FontFamily=JetBrainsMono NF
   - target: TextBlock#DateInnerTextBlock
     styles:
+      - Margin=0,-15,0,0
       - Foreground=#89b4fa
       - FontFamily=JetBrainsMono NF
+
+
+
+

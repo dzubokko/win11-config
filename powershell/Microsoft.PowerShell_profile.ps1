@@ -292,6 +292,57 @@ function whcopy {
     Get-Content (Join-Path "$HOME\dotfiles\windhawk" $map[$Name]) -Raw | Set-Clipboard
     Write-Host "  скопировано: $($map[$Name]) — вставь в Windhawk и сохрани" -ForegroundColor DarkGray
 }
+# --- doctor: проверка всего сетапа ---
+function doctor {
+    $e = [char]27
+    $ok = "$e[38;2;166;227;161m✓$e[0m"; $bad = "$e[38;2;243;139;168m✗$e[0m"
+    $dim = "$e[38;2;127;132;156m"; $r = "$e[0m"
+    $line = { param($pass, $text, $hint) if ($pass) { Write-Host "  $ok $text" } else { Write-Host "  $bad $text  $dim$hint$r" } }
+    $head = { param($t) Write-Host "`n  $e[38;2;137;180;250m$t$r" }
+
+    & $head 'Система'
+    $ver = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').DisplayVersion
+    Write-Host "  · Windows 11 $ver"
+    $dev = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense -eq 1
+    & $line $dev 'режим разработчика' 'Параметры → Система → Для разработчиков'
+
+    & $head 'Ссылки на конфиги'
+    $links = [ordered]@{
+        'профиль' = $PROFILE; 'WezTerm' = "$HOME\.wezterm.lua"
+        'GlazeWM' = "$HOME\.glzr\glazewm\config.yaml"; 'fastfetch' = "$HOME\.config\fastfetch\config.jsonc"
+        'YASB' = "$HOME\.config\yasb"
+    }
+    foreach ($k in $links.Keys) {
+        $i = Get-Item $links[$k] -Force -ErrorAction SilentlyContinue
+        & $line ($i -and $i.LinkType) $k 'не ссылка на dotfiles'
+    }
+
+    & $head 'Программы'
+    $cmds = 'git', 'wezterm', 'yasbc', 'eza', 'zoxide', 'fzf', 'bat', 'btop', 'lazygit', 'fastfetch'
+    $found = @(Get-Command $cmds -CommandType Application -ErrorAction SilentlyContinue | ForEach-Object { $_.Name -replace '\.exe$', '' })
+    foreach ($c in $cmds) { & $line ($found -contains $c) $c 'не найден — переустанови через winget' }
+    & $line (Test-Path "$env:ProgramFiles\Windhawk\windhawk.exe") 'Windhawk' 'winget install RamenSoftware.Windhawk'
+
+    & $head 'Запущено'
+    & $line (Get-Process glazewm -ErrorAction SilentlyContinue) 'GlazeWM' 'запусти из Пуска'
+    & $line (Get-Process yasb -ErrorAction SilentlyContinue) 'YASB' 'yasbc start'
+    & $line (Get-Process windhawk -ErrorAction SilentlyContinue) 'Windhawk' 'запусти из Пуска'
+    & $line (Get-Process PowerToys -ErrorAction SilentlyContinue) 'PowerToys' 'запусти из Пуска'
+
+    & $head 'Шрифты и ключи'
+    Add-Type -AssemblyName System.Drawing
+    $fonts = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
+    & $line ($fonts -contains 'Iosevka Custom') 'Iosevka Custom' 'собери по dotfiles\fonts'
+    & $line ($fonts -contains 'JetBrainsMono NF') 'JetBrainsMono Nerd Font' 'winget install DEVCOM.JetBrainsMonoNerdFont'
+    & $line (Test-Path "$HOME\.config\yasb\.env") 'ключ погоды YASB' 'сохрани в ~\.config\yasb\.env'
+
+    & $head 'Репозиторий dotfiles'
+    $dirty = git -C "$HOME\dotfiles" status --porcelain 2>$null
+    $ahead = git -C "$HOME\dotfiles" log origin/main..main --oneline 2>$null
+    & $line (-not $dirty) 'всё закоммичено' 'z dot → lazygit → a → c'
+    & $line (-not $ahead) 'всё отправлено на GitHub' 'git push'
+    Write-Host ''
+}
 # --- Кодировка для внешних программ (fzf и др.) -----------------------
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -510,6 +561,7 @@ function Get-CheatData {
         )}
         sys = @{ Title = 'Система'; Items = @(
             @('btop',                   'диспетчер задач в терминале', 'btop'),
+            @('doctor',                 'проверить весь сетап', 'doctor'),
             @('btop: Left / Right',     'сменить сортировку (cpu, mem...)', ''),
             @('btop: f',                'фильтр по имени процесса', ''),
             @('btop: Enter',            'подробности процесса', ''),
@@ -759,6 +811,7 @@ Set-PSReadLineKeyHandler -Key F1 -BriefDescription 'Cheat' -ScriptBlock {
     $cmd = cheat -Pick
     if ($cmd) { [Microsoft.PowerShell.PSConsoleReadLine]::Insert($cmd) }
 }
+
 
 
 
