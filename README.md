@@ -49,7 +49,7 @@
 |---|---|---|
 | Windows 11 Taskbar Styler | `taskbar-styler.yaml` | Настройки → текстовый режим |
 | Taskbar height and icon size | `taskbar-icon-size.json` | Дополнительно → настройки модификации |
-| Taskbar Clock Customization | `taskbar-clock.json` | Дополнительно → настройки модификации |
 | Taskbar Labels for Windows 11 | `taskbar-labels.json` | Дополнительно → настройки модификации |
 
-Скопировать файл в буфер: `whcopy styler`, `whcopy size`, `whcopy clock`, `whcopy labels`.
+Скопировать файл в буфер: `whcopy styler`, `whcopy size`, `whcopy labels`.
+

@@ -50,9 +50,6 @@ controlStyles:
       - FontFamily=JetBrainsMono NF
       - Foreground=#cdd6f4
       - Padding=2,0,8,0
-  - target: Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton]
-    styles:
-      - Visibility=Collapsed
   - target: Taskbar.TaskbarFrame > Grid#RootGrid > Taskbar.TaskbarBackground > Grid > Rectangle#BackgroundFill
     styles:
       - Fill=Transparent
@@ -65,9 +62,14 @@ controlStyles:
   - target: Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel > Grid > Border#BackgroundElement, Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel > Border#BackgroundElement, SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel > Grid > Border#BackgroundElement, SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel > Border#BackgroundElement
     styles:
       - Background=#313244
-  - target: TextBlock#DateInnerTextBlock
-    styles:
-      - Margin=0,0,0,-2
   - target: Grid#OverflowRootGrid > Border
     styles:
       - Background=#313244
+  - target: TextBlock#TimeInnerTextBlock
+    styles:
+      - Foreground=#cdd6f4
+      - FontFamily=JetBrainsMono NF
+  - target: TextBlock#DateInnerTextBlock
+    styles:
+      - Foreground=#89b4fa
+      - FontFamily=JetBrainsMono NF
